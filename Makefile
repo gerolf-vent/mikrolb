@@ -1,4 +1,4 @@
-.PHONY: help docs code
+.PHONY: help code manifests test
 
 # Default target
 help:
@@ -6,6 +6,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  code       - Generate API code"
+	@echo "  manifests  - Generate Kubernetes manifests"
 	@echo "  test       - Run all tests"
 
 export PATH := $(PATH):$(shell go env GOPATH)/bin
@@ -18,6 +19,12 @@ code:
 	@$(GOCMD) install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
 	@echo "Generating DeepCopy methods..."
 	@controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+manifests:
+	@echo "Installing controller-gen..."
+	@$(GOCMD) install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
+	@echo "Generating CRD manifests..."
+	@controller-gen rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 setup-envtest:
 	@echo "Installing setup-envtest tool..."
