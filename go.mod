@@ -5,6 +5,8 @@ go 1.25.0
 require (
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
+	github.com/google/uuid v1.6.0
+	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/tidwall/gjson v1.18.0
 	go.uber.org/zap v1.27.1
 	k8s.io/api v0.35.3
@@ -27,7 +29,6 @@ require (
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
