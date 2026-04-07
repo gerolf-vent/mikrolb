@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mikrolb-controller
+  namespace: mikrolb-system
+spec:
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: mikrolb-controller
+      containers:
+      - name: controller
+        image: ghcr.io/gerolf-vent/mikrolb-controller
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: METRICS_ADDR
+          value: ":8080"
+        - name: HEALTH_PROBE_ADDR
+          value: ":8081"
+        - name: WEBHOOK_SERVER_PORT
+          value: "9443"
+        - name: WEBHOOK_SERVER_CERT_DIR
+          value: "/mnt/k8s-webhook-server/serving-certs"
+        envFrom:
+        - secretRef:
+            name: mikrolb-config
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        - containerPort: 8081
+          name: health
+          protocol: TCP
+        - containerPort: 9443
+          name: webhook
+          protocol: TCP
+        volumeMounts:
+        - name: webhook-certs
+          mountPath: /mnt/k8s-webhook-server/serving-certs
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: mikrolb-webhook-tls
