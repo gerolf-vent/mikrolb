@@ -7,6 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Reference', link: '/reference/configuration' },
     ],
     sidebar: {
       '/guide/': [
@@ -18,6 +19,15 @@ export default defineConfig({
             { text: 'IP Pools', link: '/guide/ip-pools' },
             { text: 'Services', link: '/guide/services' },
             { text: 'Debugging IPAllocations', link: '/guide/debugging-ipallocations' },
+          ]
+        }
+      ],
+      '/reference/': [
+        {
+          text: 'Reference',
+          items: [
+            { text: 'Configuration', link: '/reference/configuration' },
+            { text: 'Annotations', link: '/reference/annotations' },
           ]
         }
       ]
