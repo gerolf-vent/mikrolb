@@ -1,4 +1,4 @@
-.PHONY: help build code manifests test
+.PHONY: help build docs code manifests test
 
 # Default target
 help:
@@ -6,6 +6,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  build      - Build the container image"
+	@echo "  docs       - Generate documentation"
 	@echo "  code       - Generate API code"
 	@echo "  manifests  - Generate Kubernetes manifests"
 	@echo "  test       - Run all tests"
@@ -21,6 +22,12 @@ IMAGE_VERSION=0.1.0
 build: code
 	@echo "Building container image..."
 	@$(CONTAINER_ENGINE) image build -f ./Containerfile --tag "$(IMAGE_NAME):$(IMAGE_VERSION)" .
+
+docs:
+	@echo "Installing crd-ref-docs..."
+	@$(GOCMD) install github.com/elastic/crd-ref-docs@latest
+	@echo "Generating K8s API docs..."
+	@crd-ref-docs --source-path=./api/v1alpha1 --config=docs/.crd-ref-docs/config.yaml --renderer=markdown --templates-dir=docs/.crd-ref-docs/templates --output-path=docs/reference/api.md
 
 code:
 	@echo "Installing controller-gen..."

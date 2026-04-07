@@ -28,6 +28,7 @@ export default defineConfig({
           items: [
             { text: 'Configuration', link: '/reference/configuration' },
             { text: 'Annotations', link: '/reference/annotations' },
+            { text: 'API', link: `/reference/api` },
           ]
         }
       ]
