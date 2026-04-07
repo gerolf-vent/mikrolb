@@ -15,13 +15,19 @@ export PATH := $(PATH):$(shell go env GOPATH)/bin
 
 # Go parameters
 GOCMD=go
+
+# Container paramameters
 CONTAINER_ENGINE=$(notdir $(shell which podman 2>/dev/null || which docker 2>/dev/null))
 IMAGE_NAME=ghcr.io/gerolf-vent/mikrolb-controller
-IMAGE_VERSION=0.1.0
+GIT_TAG=$(shell git describe --tags --exact-match 2>/dev/null)
+GIT_TAG_VERSION=$(patsubst v%,%,$(GIT_TAG))
+GIT_COMMIT=$(shell git rev-parse --short=8 HEAD 2>/dev/null || echo unknown)
+GIT_DIRTY=$(shell test -n "$$(git status --porcelain 2>/dev/null)" && echo -dirty)
+IMAGE_VERSION=$(if $(GIT_TAG_VERSION),$(GIT_TAG_VERSION),$(GIT_COMMIT))$(GIT_DIRTY)
 
 build: code
 	@echo "Building container image..."
-	@$(CONTAINER_ENGINE) image build -f ./Containerfile --tag "$(IMAGE_NAME):$(IMAGE_VERSION)" .
+	@$(CONTAINER_ENGINE) image build -f ./build/Containerfile --tag "$(IMAGE_NAME):$(IMAGE_VERSION)" .
 
 docs:
 	@echo "Installing crd-ref-docs..."
