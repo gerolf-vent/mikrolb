@@ -5,7 +5,7 @@ contents:
   - https://dl-cdn.alpinelinux.org/alpine/edge/main
   - '@build ./build/packages'
   packages:
-  - metaleg-agent@build
+  - mikrolb-controller@build
   - alpine-baselayout
   - alpine-release
   - ca-certificates
