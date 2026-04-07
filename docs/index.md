@@ -5,6 +5,13 @@ hero:
   name: MikroLB
   text: Kubernetes LoadBalancer for MikroTik RouterOS
   tagline: Allocate IPs from Kubernetes CRDs and program RouterOS automatically.
+  actions:
+    - theme: brand
+      text: Get Started
+      link: /guide/getting-started
+    - theme: alt
+      text: Installation
+      link: /guide/installation
 
 features:
   - icon: '☸️'
