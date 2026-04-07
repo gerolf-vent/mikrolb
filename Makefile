@@ -1,10 +1,11 @@
-.PHONY: help code manifests test
+.PHONY: help build code manifests test
 
 # Default target
 help:
 	@echo "MikroLB Makefile"
 	@echo ""
 	@echo "Available targets:"
+	@echo "  build      - Build the container image"
 	@echo "  code       - Generate API code"
 	@echo "  manifests  - Generate Kubernetes manifests"
 	@echo "  test       - Run all tests"
@@ -13,6 +14,13 @@ export PATH := $(PATH):$(shell go env GOPATH)/bin
 
 # Go parameters
 GOCMD=go
+CONTAINER_ENGINE=$(notdir $(shell which podman 2>/dev/null || which docker 2>/dev/null))
+IMAGE_NAME=ghcr.io/gerolf-vent/mikrolb-controller
+IMAGE_VERSION=0.1.0
+
+build: code
+	@echo "Building container image..."
+	@$(CONTAINER_ENGINE) image build -f ./Containerfile --tag "$(IMAGE_NAME):$(IMAGE_VERSION)" .
 
 code:
 	@echo "Installing controller-gen..."
