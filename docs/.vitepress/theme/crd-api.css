@@ -1,0 +1,18 @@
+.crd-type {
+  background-color: var(--vp-c-bg-soft);
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin: 16px 0;
+}
+
+.crd-type > :first-child {
+  margin-top: 8px;
+}
+
+.crd-type > :last-child {
+  margin-bottom: 8px;
+}
+
+.crd-type > p {
+  margin: 8px 0;
+}

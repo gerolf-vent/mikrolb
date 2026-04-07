@@ -1,0 +1,204 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: ipallocations.mikrolb.de
+spec:
+  group: mikrolb.de
+  names:
+    kind: IPAllocation
+    listKind: IPAllocationList
+    plural: ipallocations
+    shortNames:
+    - ipa
+    singular: ipallocation
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.labels.mikrolb\.de/service-namespace
+      name: Namespace
+      type: string
+    - jsonPath: .metadata.labels.mikrolb\.de/service-name
+      name: Service
+      type: string
+    - jsonPath: .spec.ipFamily
+      name: Family
+      priority: 1
+      type: string
+    - jsonPath: .spec.poolName
+      name: Pool
+      priority: 1
+      type: string
+    - jsonPath: .spec.address
+      name: Configured Address
+      priority: 1
+      type: string
+    - jsonPath: .status.address
+      name: Address
+      type: string
+    - jsonPath: .status.phase
+      name: Status
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+      name: Reason
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Message
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          IPAllocation tracks the allocation of a single IP address for a service. The service
+          reference is stored in the labels `mikrolb.de/service-namespace` and `mikrolb.de/service-name`.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Desired state of the IP allocation.
+            properties:
+              address:
+                description: Specific IP address to allocate. Must be a valid IPv4
+                  or IPv6 address.
+                type: string
+              ipFamily:
+                description: Desired IP family of the address to allocate. Must be
+                  either "IPv4" or "IPv6".
+                enum:
+                - IPv4
+                - IPv6
+                type: string
+              poolName:
+                description: Name of the desired IP pool to allocate an address from.
+                maxLength: 253
+                pattern: ^[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?$
+                type: string
+            type: object
+            x-kubernetes-validations:
+            - message: Either ipFamily, poolName or address must be specified
+              rule: (has(self.ipFamily) && self.ipFamily != "") || (has(self.poolName)
+                && self.poolName != "") || (has(self.address) && self.address != "")
+            - message: Only one of ipFamily, poolName or address can be specified
+              rule: '[(has(self.ipFamily) && self.ipFamily != ""), (has(self.poolName)
+                && self.poolName != ""), (has(self.address) && self.address != "")].filter(x,
+                x).size() <= 1'
+          status:
+            description: Observed state of the IP allocation.
+            properties:
+              address:
+                description: |-
+                  Address is the allocated IP address. This is only set if Phase is "Allocated"
+                  or "Programmed".
+                type: string
+              advertised:
+                description: |-
+                  Whether the allocated address is configured for advertisement via ARP/NDP on
+                  the router. This is only set if Phase is "Allocated" or "Programmed".
+                type: boolean
+              conditions:
+                description: Conditions hold the latest available observations of
+                  the IPAllocation's state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              interfaceName:
+                description: |-
+                  InterfaceName is the name of the network interface the allocated address is
+                  advertised on. This is only definitly set in phase "Programmed" and might be
+                  set in phase "Allocated".
+                type: string
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the most recent generation observed by the controller for
+                  this IPAllocation. It is used to detect if the spec has been updated since the
+                  last reconciliation.
+                format: int64
+                type: integer
+              phase:
+                default: Pending
+                description: Phase is the current status phase of the allocation.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,8 @@
+processor:
+  ignoreFields:
+    - "TypeMeta$"
+  ignoreTypes:
+    - "List$"
+
+render:
+  kubernetesVersion: "1.35"

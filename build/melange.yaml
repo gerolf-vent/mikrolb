@@ -1,0 +1,27 @@
+package:
+  name: mikrolb-controller
+  version: 0.0.0 # Derived from Git tag
+  epoch: 0
+  description: A load balancer controller for Kubernetes and MikroTik RouterOS
+  target-architecture:
+    - all
+  copyright:
+    - license: Apache-2.0
+      paths:
+        - "*"
+
+environment:
+  contents:
+    repositories:
+      - https://dl-cdn.alpinelinux.org/alpine/edge/main
+      - https://dl-cdn.alpinelinux.org/alpine/edge/community
+    packages:
+      - alpine-base
+      - go
+
+pipeline:
+- name: Build
+  runs: |
+    mkdir -p ${{targets.destdir}}/usr/bin
+    CGO_ENABLED=0 go build -o ${{targets.destdir}}/usr/bin/mikrolb-controller ./cmd/mikrolb-controller/main.go
+ 

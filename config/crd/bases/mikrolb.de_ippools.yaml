@@ -1,0 +1,218 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: ippools.mikrolb.de
+spec:
+  group: mikrolb.de
+  names:
+    kind: IPPool
+    listKind: IPPoolList
+    plural: ippools
+    shortNames:
+    - ipp
+    singular: ippool
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.ipFamily
+      name: Family
+      type: string
+    - jsonPath: .spec.autoAssign
+      name: Auto-Assign
+      type: boolean
+    - jsonPath: .spec.advertise
+      name: Advertise
+      type: boolean
+    - jsonPath: .spec.interfaceName
+      name: Interface
+      priority: 1
+      type: string
+    - jsonPath: .status.totalAddresses
+      name: Total
+      priority: 1
+      type: string
+    - jsonPath: .status.allocatedAddresses
+      name: Allocated
+      priority: 1
+      type: string
+    - jsonPath: .status.freeAddresses
+      name: Free
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          IPPool represents a pool of IP addresses that can be allocated to services. It defines the
+          IP family, the list of addresses or CIDRs in the pool, and other configuration options. The
+          status tracks the total number of addresses in the pool and how many are currently allocated.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Desired state of the IP pool.
+            properties:
+              addresses:
+                description: |-
+                  List of CIDRs, ranges or individual IPs, e.g. "192.168.1.0/24", "10.0.0.5",
+                  "172.16.10.7-172.16.10.10" or "fd37:274a:df59::/64". You can use the prefix "!"
+                  to exclude specific addresses or ranges from the pool, e.g. "!10.1.2.3" or
+                  "!10.1.0.0/24". Exclusions take precedence over inclusions, so if an IP matches
+                  both an inclusion and an exclusion, it will be excluded.
+                items:
+                  type: string
+                minItems: 1
+                type: array
+                x-kubernetes-list-type: set
+              advertise:
+                default: true
+                description: |-
+                  Whether IPs from this pool should be advertised via ARP/NDP on the
+                  router. If `false`, addresses are allocated, load balancers and SNAT are
+                  configured, but the address will NOT be configured on an interface in
+                  RouterOS.
+                type: boolean
+              autoAssign:
+                default: true
+                description: |-
+                  If `false`, IPs from this pool will not be auto-assigned to services. Services
+                  must explicitly request this pool via annotation.
+                type: boolean
+              avoidBuggyIPs:
+                default: true
+                description: |-
+                  If `true`, IPs from this pool will be allocated in a way that avoids
+                  known buggy addresses (e.g. .0, .1, .255 in IPv4 subnets). This only has
+                  an effect if the pool contains CIDR blocks, and is ignored for explicitly
+                  listed IPs or ranges. Enabling this may reduce the number of usable
+                  addresses in small subnets.
+                type: boolean
+              interfaceName:
+                description: |-
+                  Network interface the router will use for ARP/NDP advertisement. If
+                  empty, no interface hint is passed and the most suitable interface is
+                  determined by the router's routing table.
+                pattern: ^(|[a-zA-Z0-9][a-zA-Z0-9\-\.]*[a-zA-Z0-9])$
+                type: string
+              ipFamily:
+                description: IP family of the addresses in this pool. Must be either
+                  "IPv4" or "IPv6".
+                enum:
+                - IPv4
+                - IPv6
+                type: string
+            required:
+            - addresses
+            - ipFamily
+            type: object
+          status:
+            description: Observed state of the IP pool.
+            properties:
+              allocatedAddresses:
+                description: |-
+                  Number of currently allocated addresses in a human-readable format, e.g.
+                  "256", "1K" or "1M".
+                type: string
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the IP pool's state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              freeAddresses:
+                description: |-
+                  Number of currently unallocated addresses in a human-readable format, e.g.
+                  "256", "1K" or "1M".
+                type: string
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the most recent generation observed by the controller for this IPPool.
+                  It is used to detect if the spec has been updated since the last reconciliation.
+                format: int64
+                type: integer
+              totalAddresses:
+                description: |-
+                  Total number of allocatable addresses in this pool in a human-readable format,
+                  e.g. "256", "1K" or "1M".
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

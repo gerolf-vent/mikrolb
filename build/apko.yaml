@@ -1,0 +1,14 @@
+contents:
+  keyring:
+  - ./build/melange.rsa.pub
+  repositories:
+  - https://dl-cdn.alpinelinux.org/alpine/edge/main
+  - '@build ./build/packages'
+  packages:
+  - metaleg-agent@build
+  - alpine-baselayout
+  - alpine-release
+  - ca-certificates
+
+entrypoint:
+  command: mikrolb-controller
