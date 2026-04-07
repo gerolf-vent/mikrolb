@@ -1,5 +1,3 @@
-# NPM
-node_modules
-
 # VitePress
-.vitepress/cache
+/.vitepress/cache
+/.vitepress/dist
