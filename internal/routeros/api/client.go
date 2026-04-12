@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/tidwall/gjson"
@@ -34,9 +36,14 @@ type Client struct {
 	password   string
 	logger     logr.Logger
 	httpClient HTTPRuntime
+
+	policyTimeout   time.Duration
+	policyCache     []string
+	policyFetchedAt time.Time
+	policyMu        sync.Mutex
 }
 
-func NewClient(endpoint *url.URL, tlsConfig *tls.Config, logger logr.Logger) *Client {
+func NewClient(endpoint *url.URL, tlsConfig *tls.Config, policyTimeout time.Duration, logger logr.Logger) *Client {
 	return &Client{
 		endpoint: &url.URL{
 			Scheme: endpoint.Scheme,
@@ -49,6 +56,7 @@ func NewClient(endpoint *url.URL, tlsConfig *tls.Config, logger logr.Logger) *Cl
 				TLSClientConfig: tlsConfig,
 			},
 		},
+		policyTimeout: policyTimeout,
 	}
 }
 
@@ -59,6 +67,48 @@ func (c *Client) SetHTTPClient(runtime HTTPRuntime) {
 func (c *Client) SetCredentials(username, password string) {
 	c.username = username
 	c.password = password
+}
+
+func (c *Client) Policies() ([]string, error) {
+	c.policyMu.Lock()
+	defer c.policyMu.Unlock()
+
+	if time.Since(c.policyFetchedAt) < c.policyTimeout && c.policyCache != nil {
+		return c.policyCache, nil
+	}
+
+	resp, err := c.Get("/user", Query{
+		"name": c.username,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
+	}
+	if !resp.Exists() || len(resp.Array()) == 0 {
+		return nil, fmt.Errorf("user not found: %s", c.username)
+	}
+
+	group := resp.Get("0.group").String()
+	resp, err = c.Get("/user/group", Query{
+		"name": group,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user group: %w", err)
+	}
+	if !resp.Exists() || len(resp.Array()) == 0 {
+		return nil, fmt.Errorf("user group not found: %s", group)
+	}
+
+	policiesStr := resp.Get("0.policy").String()
+
+	policies := strings.Split(policiesStr, ",")
+	for i := range policies {
+		policies[i] = strings.TrimSpace(policies[i])
+	}
+
+	c.policyCache = policies
+	c.policyFetchedAt = time.Now()
+
+	return policies, nil
 }
 
 func (c *Client) Get(path string, query Query) (gjson.Result, error) {

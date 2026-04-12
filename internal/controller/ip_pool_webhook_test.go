@@ -422,7 +422,7 @@ func TestIPPoolValidator_ValidateDelete(t *testing.T) {
 	if err != nil {
 		t.Errorf("ValidateDelete() error = %v, want nil", err)
 	}
-	if warnings != nil && len(warnings) > 0 {
+	if len(warnings) > 0 {
 		t.Errorf("ValidateDelete() warnings = %v, want nil", warnings)
 	}
 }

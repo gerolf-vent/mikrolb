@@ -4,3 +4,8 @@ kind: Kustomization
 
 resources:
   - deployment.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/component: controller
+    includeSelectors: true

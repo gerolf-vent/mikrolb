@@ -18,10 +18,11 @@ type Config struct {
 	WebhookCertDir string `env:"WEBHOOK_CERT_DIR,default=/mnt/k8s-webhook-server/serving-certs"`
 
 	// RouterOS options
-	RouterOSURL      *url.URL `env:"ROUTEROS_URL,required"`
-	RouterOSUsername string   `env:"ROUTEROS_USERNAME,required"`
-	RouterOSPassword string   `env:"ROUTEROS_PASSWORD,required"`
-	RouterOSCACert   string   `env:"ROUTEROS_CA_CERT"`
+	RouterOSURL          *url.URL      `env:"ROUTEROS_URL,required"`
+	RouterOSUsername     string        `env:"ROUTEROS_USERNAME,required"`
+	RouterOSPassword     string        `env:"ROUTEROS_PASSWORD,required"`
+	RouterOSCACert       string        `env:"ROUTEROS_CA_CERT"`
+	RouterOSCacheTimeout time.Duration `env:"ROUTEROS_CACHE_TIMEOUT,default=5m"`
 
 	// Controller options
 	LoadBalancerClassName string `env:"LOAD_BALANCER_CLASS_NAME,default=mikrolb.de/controller"`

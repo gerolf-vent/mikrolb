@@ -5,9 +5,12 @@ MikroLB is a Kubernetes controller that transforms your MikroTik device into a l
 ## Prerequisites
 
 - Kubernetes cluster (v1.25+)
-- cert-manager installed
-- kubectl with Kustomize support
-- MikroTik RouterOS v7 device with HTTPS REST API enabled, reachable from the cluster
+- [cert-manager](https://cert-manager.io/) installed
+- `kubectl` with Kustomize support
+- MikroTik device
+    - RouterOS v7
+    - HTTPS REST API enabled (and reachable from the cluster)
+    - can route cluster Pod-CIDRs (e.g. via BGP-peering)
 
 ## Quick Deploy
 

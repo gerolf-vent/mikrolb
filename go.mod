@@ -5,10 +5,12 @@ go 1.25.0
 require (
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
+	github.com/google/gopacket v1.1.19
 	github.com/google/uuid v1.6.0
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/tidwall/gjson v1.18.0
 	go.uber.org/zap v1.27.1
+	golang.org/x/sys v0.38.0
 	k8s.io/api v0.35.3
 	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.0
@@ -50,7 +52,6 @@ require (
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/term v0.37.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.9.0 // indirect

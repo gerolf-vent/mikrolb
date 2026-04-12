@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.1.1] - 2026-04-12
+
+### Added
+
+- Gratuitous ARP advertisements support in the RouterOS backend
+- Policies fetcher to the RouterOS API client
+- Policies check in the backend for gratuitous advertisements
+
+### Fixed
+
+- Mangle rule in RouterOS backend
+- Missing image tag in Kustomization
+- Missing labels in Kustomization
+- Go lint warning for slice length check
+
+### Improved
+
+- Documentation (getting started and installation guides, README)
+
 ## [v0.1.0] - 2026-04-07
 
 Initial release of MikroLB, a Kubernetes controller that turns a MikroTik RouterOS v7 device into a `LoadBalancer` provider for your cluster.

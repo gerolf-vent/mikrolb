@@ -29,7 +29,10 @@ Full documentation lives at **[mikrolb.de](https://mikrolb.de)**.
 - Kubernetes cluster (v1.25+)
 - [cert-manager](https://cert-manager.io/) installed
 - `kubectl` with Kustomize support
-- A MikroTik RouterOS v7 device with the HTTPS REST API enabled and reachable from the cluster
+- MikroTik device
+    - RouterOS v7
+    - HTTPS REST API enabled (and reachable from the cluster)
+    - can route cluster Pod-CIDRs (e.g. via BGP-peering)
 
 ## Quick Start
 
@@ -95,6 +98,7 @@ The controller is configured entirely through environment variables (typically s
 | `ROUTEROS_USERNAME` | Yes | – | RouterOS username |
 | `ROUTEROS_PASSWORD` | Yes | – | RouterOS password |
 | `ROUTEROS_CA_CERT` | No | – | PEM-encoded CA certificate for TLS verification |
+| `ROUTEROS_CACHE_TIMEOUT` | No | `5m` | Timeout for cached information (e.g. user policy) |
 | `LOAD_BALANCER_CLASS_NAME` | No | `mikrolb.de/controller` | Load balancer class to match |
 | `LOAD_BALANCER_DEFAULT` | No | `false` | Make MikroLB the default load balancer |
 

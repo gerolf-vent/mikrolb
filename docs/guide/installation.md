@@ -9,7 +9,7 @@ If you want to use a custom TLS certificate (recommended), you can generate one 
 ```sh
 /certificate add name=router-ca common-name=router-ca days-valid=10950 key-usage=key-cert-sign,crl-sign
 /certificate sign router-ca
-/certificate add name=router common-name=router days-valid=10950 subject-alt-name=IP:10.1.0.254,IP:2001:db8:1234:5678:abcd:ef01:2345:6789,DNS:router.example.net
+/certificate add name=router common-name=router days-valid=10950 subject-alt-name="IP:10.1.0.254,IP:2001:db8:1234:5678:abcd:ef01:2345:6789,DNS:router.example.net"
 /certificate sign router ca=router-ca
 ```
 
@@ -25,9 +25,13 @@ Now ensure this certificate is configured and the service (which provides the RE
 An user account is required which MikroLB will use for authentication.
 
 ```sh
-/user/group/add name=mikrolb comment="MikroLB controller" policy=read,write,rest-api
+/user/group/add name=mikrolb comment="MikroLB controller" policy="read,write,rest-api,api,sniff,test"
 /user/add name=mikrolb comment="MikroLB controller" group=mikrolb
 ```
+
+::: info
+The `sniff` and `test` policies are only required if you also enable the traffic generator (`/system/device-mode/print`) and want MikroLB to emit gratuitous ARP/NDP advertisements. The feature will be automatically disabled, if the policies are missing.
+:::
 
 ## Deploy MikroLB
 

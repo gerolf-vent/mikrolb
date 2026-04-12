@@ -1,8 +1,10 @@
 package routeros
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"net/netip"
 	"slices"
 	"strings"
@@ -65,6 +67,15 @@ func NewBackend(client *api.Client, logger logr.Logger) *backend {
 func (m *backend) Check() (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	policies, err := m.client.Policies()
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch user policies: %w", err)
+	}
+
+	if !slices.Contains(policies, "read") || !slices.Contains(policies, "write") {
+		return "", errors.New("user does not have required read/write policies")
+	}
 
 	resp, err := m.client.Get("/system/package", nil)
 	if err != nil {
@@ -131,6 +142,11 @@ func (m *backend) EnsureIPAdvertisement(ip netip.Addr, interfaceName string) (st
 	}
 
 	_, err := m.ensureIPAdvertisement(ip, interfaceName)
+	if err != nil {
+		return "", err
+	}
+
+	err = m.triggerGratuitousAdvertisement(ip, interfaceName)
 	if err != nil {
 		return "", err
 	}
@@ -303,6 +319,54 @@ func (m *backend) ensureIPAdvertisement(ip netip.Addr, interfaceName string) ([]
 	return resp, err
 }
 
+func (m *backend) triggerGratuitousAdvertisement(ip netip.Addr, interfaceName string) error {
+	policies, err := m.client.Policies()
+	if err != nil {
+		return fmt.Errorf("failed to fetch user policies: %w", err)
+	}
+
+	if !slices.Contains(policies, "sniff") || !slices.Contains(policies, "test") {
+		return nil
+	}
+
+	resp, err := m.client.Get("/system/device-mode", nil)
+	if err != nil {
+		return fmt.Errorf("failed to get device mode: %w", err)
+	}
+
+	trafficGenEnabled := resp.Get("traffic-gen").Bool()
+	if !trafficGenEnabled {
+		return nil
+	}
+
+	resp, err = m.client.Get("/interface", api.Query{
+		"name": interfaceName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get interface details: %w", err)
+	}
+	if !resp.Exists() || len(resp.Array()) == 0 {
+		return fmt.Errorf("interface not found: %s", interfaceName)
+	}
+
+	mac, err := net.ParseMAC(resp.Get("0.mac-address").String())
+	if err != nil {
+		return err
+	}
+
+	advPacket, err := GenerateGratuitousAdvertisement(mac, ip)
+	if err != nil {
+		return fmt.Errorf("failed to generate advertisement packet: %w", err)
+	}
+
+	_, err = m.client.Post("/tool/traffic-generator/inject", api.Request{
+		"interface": interfaceName,
+		"data":      hex.EncodeToString(advPacket),
+	}, nil, nil)
+
+	return err
+}
+
 func (m *backend) ensureLBMangleRule(family core.IPFamily) (gjson.Result, error) {
 	resp, err := m.client.Sync(
 		fmt.Sprintf("/%s/firewall/mangle", getAPIIPFamily(family)),
@@ -312,6 +376,7 @@ func (m *backend) ensureLBMangleRule(family core.IPFamily) (gjson.Result, error)
 				"action":              "mark-connection",
 				"new-connection-mark": "mikrolb-lb-connection",
 				"comment":             "mikrolb: mark LB connections",
+				"passthrough":         "true",
 				"disabled":            false,
 				"log":                 false, // Fix: For patch to work
 			},
