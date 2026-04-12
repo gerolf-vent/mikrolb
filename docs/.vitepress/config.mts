@@ -19,6 +19,7 @@ export default defineConfig({
             { text: 'IP Pools', link: '/guide/ip-pools' },
             { text: 'Services', link: '/guide/services' },
             { text: 'Debugging IPAllocations', link: '/guide/debugging-ipallocations' },
+            { text: 'Upgrade', link: '/guide/upgrade' },
           ]
         }
       ],
