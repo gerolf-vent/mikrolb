@@ -10,6 +10,7 @@ The MikroLB controller reads it's runtime configuration completly from environme
 | `ROUTEROS_USERNAME` | Yes | - | RouterOS username |
 | `ROUTEROS_PASSWORD` | Yes | - | RouterOS password |
 | `ROUTEROS_CA_CERT` | No | - | PEM encoded CA certificate for TLS vertification (not a filepath) |
+| `ROUTEROS_CACHE_TIMEOUT` | No | `5m` | Timeout for cached information (e.g. user policy) |
 
 ## Kubernetes
 

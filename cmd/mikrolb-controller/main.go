@@ -69,7 +69,7 @@ func main() {
 
 	// Initialize RouterOS API client
 	setupLog.Info("connecting to RouterOS", "endpoint", config.RouterOSURL.String(), "username", config.RouterOSUsername)
-	apiClient := api.NewClient(config.RouterOSURL, tlsConfig, ctrl.Log.WithName("RouterOS"))
+	apiClient := api.NewClient(config.RouterOSURL, tlsConfig, config.RouterOSCacheTimeout, ctrl.Log.WithName("RouterOS"))
 	apiClient.SetCredentials(config.RouterOSUsername, config.RouterOSPassword)
 
 	// Create service manager

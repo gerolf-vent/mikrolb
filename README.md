@@ -98,6 +98,7 @@ The controller is configured entirely through environment variables (typically s
 | `ROUTEROS_USERNAME` | Yes | – | RouterOS username |
 | `ROUTEROS_PASSWORD` | Yes | – | RouterOS password |
 | `ROUTEROS_CA_CERT` | No | – | PEM-encoded CA certificate for TLS verification |
+| `ROUTEROS_CACHE_TIMEOUT` | No | `5m` | Timeout for cached information (e.g. user policy) |
 | `LOAD_BALANCER_CLASS_NAME` | No | `mikrolb.de/controller` | Load balancer class to match |
 | `LOAD_BALANCER_DEFAULT` | No | `false` | Make MikroLB the default load balancer |
 

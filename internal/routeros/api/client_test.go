@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/gerolf-vent/mikrolb/internal/routeros/mock"
 	"github.com/go-logr/logr"
@@ -33,7 +34,7 @@ func NewMockClient(t *testing.T, ros *mock.RouterOS) *Client {
 	}
 	log := zapr.NewLogger(zapLog)
 
-	return NewClient(u, nil, log)
+	return NewClient(u, nil, 1*time.Second, log)
 }
 
 func NewCustomHandlerClient(t *testing.T, handler http.Handler) *Client {
@@ -52,7 +53,7 @@ func NewCustomHandlerClient(t *testing.T, handler http.Handler) *Client {
 	}
 	logger := zapr.NewLogger(zapLog)
 
-	return NewClient(u, nil, logger)
+	return NewClient(u, nil, 1*time.Second, logger)
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ func TestNewClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u, _ := url.Parse(tt.endpoint)
-			c := NewClient(u, nil, logr.Discard())
+			c := NewClient(u, nil, 1*time.Second, logr.Discard())
 			if c.endpoint.Path != tt.wantPath {
 				t.Errorf("endpoint.Path = %q, want %q", c.endpoint.Path, tt.wantPath)
 			}
@@ -92,7 +93,7 @@ func TestNewClient(t *testing.T) {
 
 func TestNewClient_DefaultHTTPClient(t *testing.T) {
 	u, _ := url.Parse("http://router.local")
-	c := NewClient(u, nil, logr.Discard())
+	c := NewClient(u, nil, 1*time.Second, logr.Discard())
 	if c.httpClient == nil {
 		t.Fatal("httpClient should be set by default")
 	}
@@ -100,7 +101,7 @@ func TestNewClient_DefaultHTTPClient(t *testing.T) {
 
 func TestSetHTTPClient(t *testing.T) {
 	u, _ := url.Parse("http://router.local")
-	c := NewClient(u, nil, logr.Discard())
+	c := NewClient(u, nil, 1*time.Second, logr.Discard())
 
 	custom := &http.Client{}
 	c.SetHTTPClient(custom)
@@ -111,13 +112,100 @@ func TestSetHTTPClient(t *testing.T) {
 
 func TestSetCredentials(t *testing.T) {
 	u, _ := url.Parse("http://router.local")
-	c := NewClient(u, nil, logr.Discard())
+	c := NewClient(u, nil, 1*time.Second, logr.Discard())
 	c.SetCredentials("admin", "secret")
 	if c.username != "admin" {
 		t.Errorf("username = %q, want %q", c.username, "admin")
 	}
 	if c.password != "secret" {
 		t.Errorf("password = %q, want %q", c.password, "secret")
+	}
+}
+
+func TestClient_Policies_Success(t *testing.T) {
+	ros := mock.NewRouterOS()
+	ros.Seed("/user", map[string]interface{}{"name": "mikrolb", "group": "lb"})
+	ros.Seed("/user/group", map[string]interface{}{"name": "lb", "policy": "read, write,rest-api, api, sniff,test"})
+	client := NewMockClient(t, ros)
+	client.SetCredentials("mikrolb", "secret")
+
+	policies, err := client.Policies()
+	if err != nil {
+		t.Fatalf("Policies() error = %v", err)
+	}
+
+	want := []string{"read", "write", "rest-api", "api", "sniff", "test"}
+	if len(policies) != len(want) {
+		t.Fatalf("len(policies) = %d, want %d", len(policies), len(want))
+	}
+	for i := range want {
+		if policies[i] != want[i] {
+			t.Errorf("policies[%d] = %q, want %q", i, policies[i], want[i])
+		}
+	}
+}
+
+func TestClient_Policies_UsesCache(t *testing.T) {
+	ros := mock.NewRouterOS()
+	ros.Seed("/user", map[string]interface{}{"name": "mikrolb", "group": "lb"})
+	ros.Seed("/user/group", map[string]interface{}{"name": "lb", "policy": "read,write"})
+	client := NewMockClient(t, ros)
+	client.SetCredentials("mikrolb", "secret")
+	client.policyTimeout = time.Hour
+
+	first, err := client.Policies()
+	if err != nil {
+		t.Fatalf("first Policies() error = %v", err)
+	}
+
+	// Mutate underlying data; second call should still return cached values.
+	groupResources := ros.Resources("/user/group")
+	if len(groupResources) != 1 {
+		t.Fatalf("expected one user group resource, got %d", len(groupResources))
+	}
+	groupID, ok := groupResources[0][".id"].(string)
+	if !ok || groupID == "" {
+		t.Fatal("expected .id on seeded user group resource")
+	}
+	if err := client.Delete("/user/group/" + groupID); err != nil {
+		t.Fatalf("failed to mutate user group resource: %v", err)
+	}
+	if _, err := client.Put("/user/group", Request{"name": "lb", "policy": "read"}); err != nil {
+		t.Fatalf("failed to recreate user group resource: %v", err)
+	}
+
+	second, err := client.Policies()
+	if err != nil {
+		t.Fatalf("second Policies() error = %v", err)
+	}
+
+	if len(first) != len(second) {
+		t.Fatalf("cached policies length = %d, want %d", len(second), len(first))
+	}
+	if len(second) != 2 || second[0] != "read" || second[1] != "write" {
+		t.Fatalf("expected cached policies [read write], got %v", second)
+	}
+}
+
+func TestClient_Policies_UserNotFound(t *testing.T) {
+	client := NewMockClient(t, mock.NewRouterOS())
+	client.SetCredentials("mikrolb", "secret")
+
+	_, err := client.Policies()
+	if err == nil {
+		t.Fatal("expected error for missing user")
+	}
+}
+
+func TestClient_Policies_GroupNotFound(t *testing.T) {
+	ros := mock.NewRouterOS()
+	ros.Seed("/user", map[string]interface{}{"name": "mikrolb", "group": "lb"})
+	client := NewMockClient(t, ros)
+	client.SetCredentials("mikrolb", "secret")
+
+	_, err := client.Policies()
+	if err == nil {
+		t.Fatal("expected error for missing user group")
 	}
 }
 
