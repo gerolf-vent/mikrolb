@@ -358,6 +358,7 @@ func (m *backend) ensureLBMangleRule(family core.IPFamily) (gjson.Result, error)
 				"action":              "mark-connection",
 				"new-connection-mark": "mikrolb-lb-connection",
 				"comment":             "mikrolb: mark LB connections",
+				"passthrough":         "true",
 				"disabled":            false,
 				"log":                 false, // Fix: For patch to work
 			},
