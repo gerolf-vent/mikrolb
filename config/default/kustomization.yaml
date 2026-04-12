@@ -19,4 +19,4 @@ labels:
 
 images:
   - name: ghcr.io/gerolf-vent/mikrolb-controller
-    newTag: v0.1.1
+    newTag: 0.1.1
