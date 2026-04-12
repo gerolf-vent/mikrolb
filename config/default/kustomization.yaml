@@ -9,3 +9,10 @@ resources:
   - ../certmanager
   - ../controller
   - ../webhook
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: mikrolb
+    includeSelectors: true
+  - pairs:
+      app.kubernetes.io/version: v0.1.1
