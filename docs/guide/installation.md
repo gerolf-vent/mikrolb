@@ -9,7 +9,7 @@ If you want to use a custom TLS certificate (recommended), you can generate one 
 ```sh
 /certificate add name=router-ca common-name=router-ca days-valid=10950 key-usage=key-cert-sign,crl-sign
 /certificate sign router-ca
-/certificate add name=router common-name=router days-valid=10950 subject-alt-name=IP:10.1.0.254,IP:2001:db8:1234:5678:abcd:ef01:2345:6789,DNS:router.example.net
+/certificate add name=router common-name=router days-valid=10950 subject-alt-name="IP:10.1.0.254,IP:2001:db8:1234:5678:abcd:ef01:2345:6789,DNS:router.example.net"
 /certificate sign router ca=router-ca
 ```
 

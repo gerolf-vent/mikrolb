@@ -29,7 +29,10 @@ Full documentation lives at **[mikrolb.de](https://mikrolb.de)**.
 - Kubernetes cluster (v1.25+)
 - [cert-manager](https://cert-manager.io/) installed
 - `kubectl` with Kustomize support
-- A MikroTik RouterOS v7 device with the HTTPS REST API enabled and reachable from the cluster
+- MikroTik device
+    - RouterOS v7
+    - HTTPS REST API enabled (and reachable from the cluster)
+    - can route cluster Pod-CIDRs (e.g. via BGP-peering)
 
 ## Quick Start
 
