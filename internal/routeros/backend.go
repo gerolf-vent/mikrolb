@@ -331,9 +331,9 @@ func (m *backend) triggerGratuitousAdvertisement(ip netip.Addr, interfaceName st
 		return fmt.Errorf("interface not found: %s", interfaceName)
 	}
 
-	mac, err := net.ParseMAC(resp.Get("0/mac-address").String())
+	mac, err := net.ParseMAC(resp.Get("0.mac-address").String())
 	if err != nil {
-		return fmt.Errorf("failed to parse MAC address: %w", err)
+		return err
 	}
 
 	advPacket, err := GenerateGratuitousAdvertisement(mac, ip)
