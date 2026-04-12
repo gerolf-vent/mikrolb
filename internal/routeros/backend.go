@@ -320,6 +320,15 @@ func (m *backend) ensureIPAdvertisement(ip netip.Addr, interfaceName string) ([]
 }
 
 func (m *backend) triggerGratuitousAdvertisement(ip netip.Addr, interfaceName string) error {
+	policies, err := m.client.Policies()
+	if err != nil {
+		return fmt.Errorf("failed to fetch user policies: %w", err)
+	}
+
+	if !slices.Contains(policies, "sniff") || !slices.Contains(policies, "test") {
+		return nil
+	}
+
 	resp, err := m.client.Get("/system/device-mode", nil)
 	if err != nil {
 		return fmt.Errorf("failed to get device mode: %w", err)
