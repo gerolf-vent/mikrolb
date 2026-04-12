@@ -68,6 +68,15 @@ func (m *backend) Check() (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	policies, err := m.client.Policies()
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch user policies: %w", err)
+	}
+
+	if !slices.Contains(policies, "read") || !slices.Contains(policies, "write") {
+		return "", errors.New("user does not have required read/write policies")
+	}
+
 	resp, err := m.client.Get("/system/package", nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to check router packages: %w", err)
