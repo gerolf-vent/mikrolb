@@ -11,7 +11,9 @@ RUN apk add --no-cache \
     go \
     make \
     nodejs \
-    npm
+    npm \
+    bubblewrap \
+    socat
 
 RUN npm install -g pnpm@11.19.0
 
