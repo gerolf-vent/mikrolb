@@ -1,2 +1,3 @@
-# npm
+# pnpm
 node_modules
+.pnpm-store

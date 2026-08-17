@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.1.2] - 2026-08-17
+
+### Security-Fixes
+
+#### Forward chain accepted all traffic
+
+<table>
+<tr><td><strong>Issue</strong></td><td>The mangle rule in the RouterOS backend was missing the destination address-list filter, causing it to mark every forwarded connection, not just those addressed to a load balancer IP, with the <code>mikrolb-lb-connection</code> connection mark.</td></tr>
+<tr><td><strong>Impact</strong></td><td>Because the <code>forward</code> chain accept rule trusts this mark, the firewall accepted all forwarded traffic instead of only traffic destined for load balancer IPs, effectively disabling the intended traffic restriction.</td></tr>
+<tr><td><strong>Severity</strong></td><td>High. Any device with a MikroLB-managed router was exposed to unrestricted forwarded traffic.</td></tr>
+<tr><td><strong>Fix</strong></td><td>Upgrade to this version and let the controller reconcile; the existing rule on the router is patched automatically. See the <a href="https://mikrolb.de/guide/upgrade#v012">upgrade guide</a> for details, including how to apply the fix without waiting for the next reconcile.</td></tr>
+</table>
+
 ## [v0.1.1] - 2026-04-12
 
 ### Added
