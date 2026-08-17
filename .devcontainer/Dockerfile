@@ -9,7 +9,11 @@ RUN apk add --no-cache \
     curl \
     git \
     go \
-    make
+    make \
+    nodejs \
+    npm
+
+RUN npm install -g pnpm@11.19.0
 
 RUN adduser -D vscode
 RUN echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode
