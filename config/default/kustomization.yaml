@@ -15,8 +15,8 @@ labels:
       app.kubernetes.io/name: mikrolb
     includeSelectors: true
   - pairs:
-      app.kubernetes.io/version: v0.1.1
+      app.kubernetes.io/version: v0.1.2
 
 images:
   - name: ghcr.io/gerolf-vent/mikrolb-controller
-    newTag: 0.1.1
+    newTag: 0.1.2
